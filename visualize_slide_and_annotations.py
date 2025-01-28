@@ -422,7 +422,6 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         os.makedirs(cache_dir, exist_ok=True)
     
     # Extract positive samples from tumor annotations for training slides
-    import pdb;pdb.set_trace()
     if build_cache:
         tumor_patches, tumor_coords = [], []
         for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations"):
@@ -449,14 +448,14 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     else:
         tumor_patches, tumor_coords = [], []
         for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations"):
-            slide_name = svs_tumor.split(os.path.sep)[-1].split(".")[0]
+            slide_name = str(svs_tumor).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"tumor_patches_{slide_name}_{idx}.npy"
             coord_name = f"tumor_coords_{slide_name}_{idx}.npy"
             tumor_patches.append(patch_name)
             tumor_coords.append(coord_name)
         dnn_patches, dnn_coords = [], []
         for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides"):
-            slide_name = svs_dnn.split(os.path.sep)[-1].split(".")[0]
+            slide_name = str(svs_dnn).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"dnn_patches_{slide_name}_{idx}.npy"
             coord_name = f"dnn_coords_{slide_name}_{idx}.npy"
             dnn_patches.append(patch_name)
