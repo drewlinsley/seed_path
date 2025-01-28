@@ -26,7 +26,6 @@ def main():
     output_dir.mkdir(exist_ok=True)
     
     # Get all SVS files from Pass_Slides_DNN
-    import pdb;pdb.set_trace()
     classifier, accuracy = train_tumor_classifier(
         slide_dnn_paths=usable_slides,
         tissue_annotation_paths=usable_tissue_annotations,
