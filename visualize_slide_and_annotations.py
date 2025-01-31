@@ -424,7 +424,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     # Extract positive samples from tumor annotations for training slides
     if build_cache:
         tumor_patches, tumor_coords = [], []
-        for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations"):
+        for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations", total=len(train_slides)):
             tp, tc = extract_tissue_patches(svs_tumor, xml_tumor, patch_size=patch_size, level=0)
             slide_name = str(svs_tumor).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"tumor_patches_{slide_name}_{idx}.npy"
@@ -436,7 +436,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         
         # Extract patches from DNN slides for training
         dnn_patches, dnn_coords = [], []
-        for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides"):
+        for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides", total=len(train_slides)):
             dp, dc = extract_tissue_patches(svs_dnn, xml_dnn, patch_size=patch_size, level=0)
             slide_name = svs_dnn.split(os.path.sep)[-1].split(".")[0]
             patch_name = f"dnn_patches_{slide_name}_{idx}.npy"
@@ -447,14 +447,14 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             dnn_coords.append(coord_name)
     else:
         tumor_patches, tumor_coords = [], []
-        for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations"):
+        for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations", total=len(train_slides)):
             slide_name = str(svs_tumor).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"tumor_patches_{slide_name}_{idx}.npy"
             coord_name = f"tumor_coords_{slide_name}_{idx}.npy"
             tumor_patches.append(patch_name)
             tumor_coords.append(coord_name)
         dnn_patches, dnn_coords = [], []
-        for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides"):
+        for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides", total=len(train_slides)):
             slide_name = str(svs_dnn).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"dnn_patches_{slide_name}_{idx}.npy"
             coord_name = f"dnn_coords_{slide_name}_{idx}.npy"
