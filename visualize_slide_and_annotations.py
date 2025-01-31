@@ -315,7 +315,6 @@ def extract_tissue_patches(svs_path, xml_path, patch_size=224, level=0, normaliz
     level_downsample = slide.level_downsamples[level]
     
     # Calculate grid dimensions
-    import pdb;pdb.set_trace()
     n_rows = int(level_dims[1] // patch_size)
     n_cols = int(level_dims[0] // patch_size)
     
@@ -328,7 +327,7 @@ def extract_tissue_patches(svs_path, xml_path, patch_size=224, level=0, normaliz
     scale_y = 1.0 / level_downsample
     
     # Iterate through grid
-    for row in n_rows:  # tqdm(range(n_rows), desc="Extracting patches"):
+    for row in range(n_rows):  # tqdm(range(n_rows), desc="Extracting patches"):
         for col in range(n_cols):
             x = col * patch_size
             y = row * patch_size
