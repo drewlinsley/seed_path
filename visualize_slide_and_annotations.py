@@ -438,7 +438,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         dnn_patches, dnn_coords = [], []
         for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides", total=len(train_slides)):
             dp, dc = extract_tissue_patches(svs_dnn, xml_dnn, patch_size=patch_size, level=0)
-            slide_name = svs_dnn.split(os.path.sep)[-1].split(".")[0]
+            slide_name = str(svs_dnn).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"dnn_patches_{slide_name}_{idx}.npy"
             coord_name = f"dnn_coords_{slide_name}_{idx}.npy"
             np.save(os.path.join(cache_dir, patch_name), dp)
