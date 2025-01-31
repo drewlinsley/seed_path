@@ -394,7 +394,7 @@ def analyze_patches_with_instanseg(patches, svs_path):
     return nuclei_stats, labeled_outputs
 
 
-def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annotation_paths, patch_size=224, n_samples=100, build_cache=False, cache_dir="cached_patches"):
+def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annotation_paths, patch_size=224, n_samples=100, build_cache=True, cache_dir="cached_patches"):
     """
     Train a random forest classifier using tumor annotations as positive samples
     and non-overlapping DNN regions as negative samples.
