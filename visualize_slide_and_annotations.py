@@ -461,10 +461,28 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             dnn_patches.append(patch_name)
             dnn_coords.append(coord_name)
 
-    import pdb;pdb.set_trace()
-    # Convert coordinates to sets for easier comparison
-    tumor_coords_set = {(x, y) for x, y in tumor_coords}
-    dnn_coords_set = {(x, y) for x, y in dnn_coords}
+    # Load patches and coordinates
+    tumor_patches = []
+    tumor_coords = []
+    dnn_patches = []
+    dnn_coords = []
+    non_tumor_patches = []
+    non_tumor_coords = []
+    for patch_name, coord_name in tqdm(zip(tumor_patches, tumor_coords), desc="Loading tumor patches and coordinates", total=len(tumor_patches)):
+        tumor_patches.append(np.load(os.path.join(cache_dir, patch_name)))
+        tumor_coords.append(np.load(os.path.join(cache_dir, coord_name)))
+    for patch_name, coord_name in tqdm(zip(dnn_patches, dnn_coords), desc="Loading DNN patches and coordinates", total=len(dnn_patches)):
+        dnn_patches.append(np.load(os.path.join(cache_dir, patch_name)))
+        dnn_coords.append(np.load(os.path.join(cache_dir, coord_name)))
+
+    for tumor_coord, dnn_coord in tqdm(zip(tumor_coords, dnn_coords), desc="Loading non-tumor patches and coordinates", total=len(tumor_coords)):
+        tumor_coords_set = {(x, y) for x, y in tumor_coord}
+        dnn_coords_set = {(x, y) for x, y in dnn_coord}
+        import pdb;pdb.set_trace()
+        non_tumor_coords_set = dnn_coords_set - tumor_coords_set
+        for coord in non_tumor_coords_set:
+            non_tumor_patches.append(dnn_patches[i])
+            non_tumor_coords.append(coord)  
     
     # Find coordinates that are in DNN but not in tumor annotations
     non_tumor_coords_set = dnn_coords_set - tumor_coords_set
