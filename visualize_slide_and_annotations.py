@@ -509,7 +509,6 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
                 import pdb;pdb.set_trace()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             tumor_embs.append(emb.cpu().numpy())
-    import pdb;pdb.set_trace()
     tumor_embs = np.concatenate(tumor_embs)
     
     # Get DINO embeddings for non-tumor patches
@@ -523,6 +522,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     non_tumor_embs = np.concatenate(non_tumor_embs)
     
     # Sample equal numbers from each class for training
+    import pdb;pdb.set_trace()
     n_samples = min(n_samples, len(tumor_embs), len(non_tumor_embs))
     tumor_indices = np.random.choice(len(tumor_embs), n_samples, replace=False)
     non_tumor_indices = np.random.choice(len(non_tumor_embs), n_samples, replace=False)
@@ -585,7 +585,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             z = ((x - mu[None, None, None]) / std[None, None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             test_tumor_embs.append(emb.cpu().numpy())
-    test_tumor_embs = np.asarray(test_tumor_embs)
+    test_tumor_embs = np.concatenate(test_tumor_embs)
     
     # Get DINO embeddings for test non-tumor patches
     test_non_tumor_embs = []
@@ -595,7 +595,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             z = ((x - mu[None, None, None]) / std[None, None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             test_non_tumor_embs.append(emb.cpu().numpy())
-    test_non_tumor_embs = np.asarray(test_non_tumor_embs)
+    test_non_tumor_embs = np.concatenate(test_non_tumor_embs)
 
     # Create test set (using same number of samples as training)
     n_test_samples = min(n_samples, len(test_tumor_embs), len(test_non_tumor_embs))
