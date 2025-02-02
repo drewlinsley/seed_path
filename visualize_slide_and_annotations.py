@@ -466,7 +466,6 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     tumor_coords = []
     dnn_patches = []
     dnn_coords = []
-    import pdb;pdb.set_trace()
     for patch_name, coord_name in tqdm(zip(tumor_patche_names, tumor_coord_names), desc="Loading tumor patches and coordinates", total=len(tumor_patche_names)):
         tumor_patches.append(np.load(os.path.join(cache_dir, patch_name)))
         tumor_coords.append(np.load(os.path.join(cache_dir, coord_name)))
@@ -476,9 +475,9 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     non_tumor_patches = []
     non_tumor_coords = []
     for tumor_coord, dnn_coord in tqdm(zip(tumor_coord_names, dnn_coord_names), desc="Loading non-tumor patches and coordinates", total=len(tumor_coord_names)):
+        import pdb;pdb.set_trace()
         tumor_coords_set = {(x, y) for x, y in tumor_coord}
         dnn_coords_set = {(x, y) for x, y in dnn_coord}
-        import pdb;pdb.set_trace()
         non_tumor_coords_set = dnn_coords_set - tumor_coords_set
         for coord in non_tumor_coords_set:
             non_tumor_patches.append(dnn_patches[i])
