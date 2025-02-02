@@ -599,6 +599,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             z = ((x - mu[None, None, None]) / std[None, None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             test_non_tumor_embs.append(emb.cpu().numpy())
+    import pdb;pdb.set_trace()
     test_non_tumor_embs = np.concatenate(test_non_tumor_embs)
 
     # Create test set (using same number of samples as training)
