@@ -423,7 +423,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     
     # Extract positive samples from tumor annotations for training slides
     if build_cache:
-        tumor_patches, tumor_coords = [], []
+        tumor_patche_names, tumor_coord_names = [], []
         for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations", total=len(train_slides)):
             tp, tc = extract_tissue_patches(svs_tumor, xml_tumor, patch_size=patch_size, level=0)
             slide_name = str(svs_tumor).split(os.path.sep)[-1].split(".")[0]
@@ -431,11 +431,11 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             coord_name = f"tumor_coords_{slide_name}_{idx}.npy"
             np.save(os.path.join(cache_dir, patch_name), tp)
             np.save(os.path.join(cache_dir, coord_name), tc)
-            tumor_patches.append(patch_name)
-            tumor_coords.append(coord_name)
+            tumor_patche_names.append(patch_name)
+            tumor_coord_names.append(coord_name)
         
         # Extract patches from DNN slides for training
-        dnn_patches, dnn_coords = [], []
+        dnn_patche_names, dnn_coord_names = [], []
         for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides", total=len(train_slides)):
             dp, dc = extract_tissue_patches(svs_dnn, xml_dnn, patch_size=patch_size, level=0)
             slide_name = str(svs_dnn).split(os.path.sep)[-1].split(".")[0]
@@ -443,39 +443,38 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             coord_name = f"dnn_coords_{slide_name}_{idx}.npy"
             np.save(os.path.join(cache_dir, patch_name), dp)
             np.save(os.path.join(cache_dir, coord_name), dc)
-            dnn_patches.append(patch_name)
-            dnn_coords.append(coord_name)
+            dnn_patche_names.append(patch_name)
+            dnn_coord_names.append(coord_name)
     else:
-        tumor_patches, tumor_coords = [], []
+        tumor_patche_names, tumor_coord_names = [], []
         for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations", total=len(train_slides)):
             slide_name = str(svs_tumor).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"tumor_patches_{slide_name}_{idx}.npy"
             coord_name = f"tumor_coords_{slide_name}_{idx}.npy"
-            tumor_patches.append(patch_name)
-            tumor_coords.append(coord_name)
-        dnn_patches, dnn_coords = [], []
+            tumor_patche_names.append(patch_name)
+            tumor_coord_names.append(coord_name)
+        dnn_patche_names, dnn_coord_names = [], []
         for idx, (svs_dnn, xml_dnn) in tqdm(enumerate(zip(train_slides, train_tissue)), desc="Extracting patches from DNN slides", total=len(train_slides)):
             slide_name = str(svs_dnn).split(os.path.sep)[-1].split(".")[0]
             patch_name = f"dnn_patches_{slide_name}_{idx}.npy"
             coord_name = f"dnn_coords_{slide_name}_{idx}.npy"
-            dnn_patches.append(patch_name)
-            dnn_coords.append(coord_name)
+            dnn_patche_names.append(patch_name)
+            dnn_coord_names.append(coord_name)
 
     # Load patches and coordinates
     tumor_patches = []
     tumor_coords = []
     dnn_patches = []
     dnn_coords = []
-    non_tumor_patches = []
-    non_tumor_coords = []
+    import pdb;pdb.set_trace()
     for patch_name, coord_name in tqdm(zip(tumor_patches, tumor_coords), desc="Loading tumor patches and coordinates", total=len(tumor_patches)):
         tumor_patches.append(np.load(os.path.join(cache_dir, patch_name)))
         tumor_coords.append(np.load(os.path.join(cache_dir, coord_name)))
     for patch_name, coord_name in tqdm(zip(dnn_patches, dnn_coords), desc="Loading DNN patches and coordinates", total=len(dnn_patches)):
         dnn_patches.append(np.load(os.path.join(cache_dir, patch_name)))
         dnn_coords.append(np.load(os.path.join(cache_dir, coord_name)))
-
-    import pdb;pdb.set_trace()
+    non_tumor_patches = []
+    non_tumor_coords = []
     for tumor_coord, dnn_coord in tqdm(zip(tumor_coords, dnn_coords), desc="Loading non-tumor patches and coordinates", total=len(tumor_coords)):
         tumor_coords_set = {(x, y) for x, y in tumor_coord}
         dnn_coords_set = {(x, y) for x, y in dnn_coord}
