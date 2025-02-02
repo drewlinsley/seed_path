@@ -422,7 +422,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         os.makedirs(cache_dir, exist_ok=True)
     
     # Extract positive samples from tumor annotations for training slides
-    if 0:
+    if 1:
         tumor_patche_names, tumor_coord_names = [], []
         for idx, (svs_tumor, xml_tumor) in tqdm(enumerate(zip(train_slides, train_tumor)), desc="Extracting patches from tumor annotations", total=len(train_slides)):
             tp, tc = extract_tissue_patches(svs_tumor, xml_tumor, patch_size=patch_size, level=0)
@@ -538,7 +538,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     y_train = y_train[idx]
     
     # Extract test patches from held-out slide
-    if 0:
+    if 1:
         # Extract and cache test tumor patches
         test_tumor_patches, test_tumor_coords = extract_tissue_patches(test_slide, test_tumor, patch_size=patch_size, level=0)
         test_slide_name = str(test_slide).split(os.path.sep)[-1].split(".")[0]
