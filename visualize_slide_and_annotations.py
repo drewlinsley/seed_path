@@ -494,7 +494,6 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     tumor_embs = []
     with torch.no_grad():
         for patch in tqdm(tumor_patches, desc="Extracting embeddings for tumor patches"):
-            import pdb;pdb.set_trace()
             x = torch.from_numpy(patch).float() / 255.
             z = ((x - mu[None, None]) / std[None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
