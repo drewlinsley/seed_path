@@ -495,7 +495,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     with torch.no_grad():
         for patch in tqdm(tumor_patches, desc="Extracting embeddings for tumor patches"):
             x = torch.from_numpy(patch).float() / 255.
-            z = ((x - mu[None, None]) / std[None, None]).float()
+            z = ((x - mu[None, None, None]) / std[None, None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             tumor_embs.append(emb.cpu().numpy())
     tumor_embs = np.asarray(tumor_embs)
@@ -505,12 +505,11 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     with torch.no_grad():
         for patch in tqdm(non_tumor_patches, desc="Extracting embeddings for non-tumor patches"):
             x = torch.from_numpy(patch).float() / 255.
-            z = ((x - mu[None, None]) / std[None, None]).float()
+            z = ((x - mu[None, None, None]) / std[None, None, None]).float()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             non_tumor_embs.append(emb.cpu().numpy())
     non_tumor_embs = np.asarray(non_tumor_embs)
     
-    import pdb;pdb.set_trace()
     # Sample equal numbers from each class for training
     n_samples = min(n_samples, len(tumor_embs), len(non_tumor_embs))
     tumor_indices = np.random.choice(len(tumor_embs), n_samples, replace=False)
@@ -524,48 +523,79 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     y_train = np.concatenate([np.ones(n_samples), np.zeros(n_samples)])
     
     # Extract test patches from held-out slide
-    test_tumor_patches, test_tumor_coords = extract_tissue_patches(test_slide, test_tumor, patch_size=patch_size, level=0)
-    test_dnn_patches, test_dnn_coords = extract_tissue_patches(test_slide, test_tissue, patch_size=patch_size, level=0)
-    
+    if 1:
+        # Extract and cache test tumor patches
+        test_tumor_patches, test_tumor_coords = extract_tissue_patches(test_slide, test_tumor, patch_size=patch_size, level=0)
+        test_slide_name = str(test_slide).split(os.path.sep)[-1].split(".")[0]
+        test_tumor_patch_name = f"tumor_patches_{test_slide_name}_test.npy"
+        test_tumor_coord_name = f"tumor_coords_{test_slide_name}_test.npy"
+        np.save(os.path.join(cache_dir, test_tumor_patch_name), test_tumor_patches)
+        np.save(os.path.join(cache_dir, test_tumor_coord_name), test_tumor_coords)
+        
+        # Extract and cache test DNN patches
+        test_dnn_patches, test_dnn_coords = extract_tissue_patches(test_slide, test_tissue, patch_size=patch_size, level=0)
+        test_dnn_patch_name = f"dnn_patches_{test_slide_name}_test.npy"
+        test_dnn_coord_name = f"dnn_coords_{test_slide_name}_test.npy"
+        np.save(os.path.join(cache_dir, test_dnn_patch_name), test_dnn_patches)
+        np.save(os.path.join(cache_dir, test_dnn_coord_name), test_dnn_coords)
+    else:
+        # Get cached filenames
+        test_slide_name = str(test_slide).split(os.path.sep)[-1].split(".")[0]
+        test_tumor_patch_name = f"tumor_patches_{test_slide_name}_test.npy"
+        test_tumor_coord_name = f"tumor_coords_{test_slide_name}_test.npy"
+        test_dnn_patch_name = f"dnn_patches_{test_slide_name}_test.npy"
+        test_dnn_coord_name = f"dnn_coords_{test_slide_name}_test.npy"
+
+    # Load test patches and coordinates
+    test_tumor_patches = np.load(os.path.join(cache_dir, test_tumor_patch_name))
+    test_tumor_coords = np.load(os.path.join(cache_dir, test_tumor_coord_name))
+    test_dnn_patches = np.load(os.path.join(cache_dir, test_dnn_patch_name))
+    test_dnn_coords = np.load(os.path.join(cache_dir, test_dnn_coord_name))
+
     # Get non-overlapping patches for test set
-    test_tumor_coords_set = {(x, y) for x, y in test_tumor_coords}
-    test_dnn_coords_set = {(x, y) for x, y in test_dnn_coords}
+    test_tumor_coords_set = {tuple(coord) for coord in test_tumor_coords}
+    test_dnn_coords_set = {tuple(coord) for coord in test_dnn_coords}
     test_non_tumor_coords_set = test_dnn_coords_set - test_tumor_coords_set
     
     test_non_tumor_patches = []
+    test_non_tumor_coords = []
     for i, coord in enumerate(test_dnn_coords):
-        if coord in test_non_tumor_coords_set:
+        if tuple(coord) in test_non_tumor_coords_set:
             test_non_tumor_patches.append(test_dnn_patches[i])
-    
-    # Get embeddings for test patches
+            test_non_tumor_coords.append(coord)
+    test_non_tumor_patches = np.array(test_non_tumor_patches)
+
+    # Get DINO embeddings for test tumor patches
     test_tumor_embs = []
-    test_non_tumor_embs = []
     with torch.no_grad():
         for patch in tqdm(test_tumor_patches, desc="Extracting embeddings for test tumor patches"):
             x = torch.from_numpy(patch).float() / 255.
-            z = ((x - mu[None, None]) / std[None, None]).float()
-            emb = dino_model(z.permute(2, 0, 1)[None].float())
+            z = ((x - mu[None, None, None]) / std[None, None, None]).float()
+            emb = dino_model(z.permute(0, 3, 1, 2).float())
             test_tumor_embs.append(emb.cpu().numpy())
-            
+    test_tumor_embs = np.asarray(test_tumor_embs)
+    
+    # Get DINO embeddings for test non-tumor patches
+    test_non_tumor_embs = []
+    with torch.no_grad():
         for patch in tqdm(test_non_tumor_patches, desc="Extracting embeddings for test non-tumor patches"):
             x = torch.from_numpy(patch).float() / 255.
-            z = ((x - mu[None, None]) / std[None, None]).float()
-            emb = dino_model(z.permute(2, 0, 1)[None].float())
+            z = ((x - mu[None, None, None]) / std[None, None, None]).float()
+            emb = dino_model(z.permute(0, 3, 1, 2).float())
             test_non_tumor_embs.append(emb.cpu().numpy())
-    
-    test_tumor_embs = np.asarray(test_tumor_embs)
     test_non_tumor_embs = np.asarray(test_non_tumor_embs)
+
+    # Create test set (using same number of samples as training)
+    n_test_samples = min(n_samples, len(test_tumor_embs), len(test_non_tumor_embs))
+    test_tumor_indices = np.random.choice(len(test_tumor_embs), n_test_samples, replace=False)
+    test_non_tumor_indices = np.random.choice(len(test_non_tumor_embs), n_test_samples, replace=False)
     
-    # Create test set
     X_test = np.concatenate([
-        test_tumor_embs.squeeze(),
-        test_non_tumor_embs.squeeze()
+        test_tumor_embs[test_tumor_indices].squeeze(),
+        test_non_tumor_embs[test_non_tumor_indices].squeeze()
     ])
-    y_test = np.concatenate([
-        np.ones(len(test_tumor_embs)),
-        np.zeros(len(test_non_tumor_embs))
-    ])
-    
+    y_test = np.concatenate([np.ones(n_test_samples), np.zeros(n_test_samples)])
+
     # Train random forest classifier
     clf = RandomForestClassifier(n_estimators=100, random_state=42)
     clf.fit(X_train, y_train)
