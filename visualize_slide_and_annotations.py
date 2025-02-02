@@ -501,6 +501,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
                 import pdb;pdb.set_trace()
             emb = dino_model(z.permute(0, 3, 1, 2).float())
             tumor_embs.append(emb.cpu().numpy())
+    import pdb;pdb.set_trace()
     tumor_embs = np.asarray(tumor_embs)
     
     # Get DINO embeddings for non-tumor patches
