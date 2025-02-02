@@ -472,27 +472,23 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     for patch_name, coord_name in tqdm(zip(dnn_patche_names, dnn_coord_names), desc="Loading DNN patches and coordinates", total=len(dnn_patche_names)):
         dnn_patches.append(np.load(os.path.join(cache_dir, patch_name)))
         dnn_coords.append(np.load(os.path.join(cache_dir, coord_name)))
+    
     non_tumor_patches = []
     non_tumor_coords = []
-    for tumor_coord, dnn_coord in tqdm(zip(tumor_coords, dnn_coords), desc="Loading non-tumor patches and coordinates", total=len(tumor_coord_names)):
-        import pdb;pdb.set_trace()
-        tumor_coords_set = {(x, y) for x, y in tumor_coord}
-        dnn_coords_set = {(x, y) for x, y in dnn_coord}
+    
+    for slide_idx, (tumor_coord, dnn_coord, dnn_patch) in enumerate(zip(tumor_coords, dnn_coords, dnn_patches)):
+        # Convert coordinates to sets of tuples for set operations
+        tumor_coords_set = {tuple(coord) for coord in tumor_coord}
+        dnn_coords_set = {tuple(coord) for coord in dnn_coord}
+        
+        # Find coordinates that are in DNN but not in tumor
         non_tumor_coords_set = dnn_coords_set - tumor_coords_set
-        for coord in non_tumor_coords_set:
-            non_tumor_patches.append(dnn_patches[i])
-            non_tumor_coords.append(coord)  
-    
-    # Find coordinates that are in DNN but not in tumor annotations
-    non_tumor_coords_set = dnn_coords_set - tumor_coords_set
-    
-    # Get the non-tumor patches using the coordinate differences
-    non_tumor_patches = []
-    non_tumor_coords = []
-    for i, coord in enumerate(dnn_coords):
-        if coord in non_tumor_coords_set:
-            non_tumor_patches.append(dnn_patches[i])
-            non_tumor_coords.append(coord)
+        
+        # Get indices of non-tumor coordinates in the original dnn_coords list
+        for i, coord in enumerate(dnn_coord):
+            if tuple(coord) in non_tumor_coords_set:
+                non_tumor_patches.append(dnn_patch[i])
+                non_tumor_coords.append(coord)
     
     # Get DINO embeddings for tumor patches
     tumor_embs = []
@@ -514,6 +510,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
             non_tumor_embs.append(emb.cpu().numpy())
     non_tumor_embs = np.asarray(non_tumor_embs)
     
+    import pdb;pdb.set_trace()
     # Sample equal numbers from each class for training
     n_samples = min(n_samples, len(tumor_embs), len(non_tumor_embs))
     tumor_indices = np.random.choice(len(tumor_embs), n_samples, replace=False)
