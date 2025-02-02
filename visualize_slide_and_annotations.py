@@ -522,8 +522,8 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     non_tumor_embs = np.concatenate(non_tumor_embs)
     
     # Sample equal numbers from each class for training
-    import pdb;pdb.set_trace()
-    n_samples = min(n_samples, len(tumor_embs), len(non_tumor_embs))
+    # n_samples = min(n_samples, len(tumor_embs), len(non_tumor_embs))
+    n_samples = min(len(tumor_embs), len(non_tumor_embs))
     tumor_indices = np.random.choice(len(tumor_embs), n_samples, replace=False)
     non_tumor_indices = np.random.choice(len(non_tumor_embs), n_samples, replace=False)
     
@@ -533,6 +533,9 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         non_tumor_embs[non_tumor_indices].squeeze()
     ])
     y_train = np.concatenate([np.ones(n_samples), np.zeros(n_samples)])
+    idx = np.random.permutation(len(X_train))
+    X_train = X_train[idx]
+    y_train = y_train[idx]
     
     # Extract test patches from held-out slide
     if 0:
@@ -565,6 +568,7 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
     test_dnn_coords = np.load(os.path.join(cache_dir, test_dnn_coord_name))
 
     # Get non-overlapping patches for test set
+    import pdb;pdb.set_trace()
     test_tumor_coords_set = {tuple(coord) for coord in test_tumor_coords}
     test_dnn_coords_set = {tuple(coord) for coord in test_dnn_coords}
     test_non_tumor_coords_set = test_dnn_coords_set - test_tumor_coords_set
