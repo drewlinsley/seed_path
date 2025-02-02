@@ -473,6 +473,14 @@ def train_tumor_classifier(slide_dnn_paths, tissue_annotation_paths, tumor_annot
         dnn_patches.append(np.load(os.path.join(cache_dir, patch_name)))
         dnn_coords.append(np.load(os.path.join(cache_dir, coord_name)))
     
+    # Remove indices where tumor_patches has length 0
+    indices_to_remove = [i for i, patches in enumerate(tumor_patches) if len(patches) == 0]
+    for idx in sorted(indices_to_remove, reverse=True):
+        del tumor_patches[idx]
+        del tumor_coords[idx]
+        del dnn_patches[idx]
+        del dnn_coords[idx]
+
     non_tumor_patches = []
     non_tumor_coords = []
     
